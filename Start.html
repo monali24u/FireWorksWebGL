@@ -42,7 +42,8 @@
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 			var container, stats;
-			var camera, scene, renderer, particles, geometry, geometryend, materials = [], parameters, i, h, color, size;
+			var camera, scene, renderer, particles, geometry, geometryend, materials = [], parameters, i, j, h, color, size, line, linesegmentgeometry;
+			var vertexstart, vertexend;
 			var mouseX = 0, mouseY = 0;
 
 			var windowHalfX = window.innerWidth / 2;
@@ -63,27 +64,47 @@
 				scene.fog = new THREE.FogExp2( 0x000000, 0.0007 );
 
 				geometry = new THREE.Geometry();
+				geometryend = new THREE.Geometry();
+				var linegeometry = new THREE.Geometry();
+	
 				for ( i = 0; i < 2000; i ++ ) {
 
-					var vertex = new THREE.Vector3();
-					vertex.x = windowHalfX - 1000;//Math.random() * 2000 - 1000;
-					vertex.y = windowHalfY - 1000;//Math.random() * 2000 - 1000;
-					vertex.z = 1000//Math.random() * 2000 - 1000;
-		
-					geometry.vertices.push( vertex );
+					vertexstart = new THREE.Vector3();
+					vertexstart.x = windowHalfX - 1000;//Math.random() * 2000 - 1000;
+					vertexstart.y = windowHalfY - 1000;//Math.random() * 2000 - 1000;
+					vertexstart.z = 1000//Math.random() * 2000 - 1000;
+					
+					vertexend = new THREE.Vector3();
+					vertexend.x = Math.random() * 2000 - 1000;
+					vertexend.y = Math.random() * 2000 - 1000;
+					vertexend.z = Math.random() * 2000 - 1000;
+				
+					//Compute distance between these two
+					//var d = vertexstart.distanceTo( vertexend );
+					//var fireworksDirection = new THREE.Vector3();
+					//fireworksDirection.subVectors( vertexstart, vertexend ).normalize();
+					
+					//var fireworksRay = new THREE.Ray();
+					//fireworksRay.set(vertexstart, fireworksDirection);
+					//var raymaterial = new THREE.PointsMaterial( { 5: 5 } );
+					//var rayparticles = new THREE.Points( fireworksRay, raymaterial );
+					//scene.add( fireworksRay );
+					
+
+
+					
+					geometry.vertices.push( vertexstart );
+					geometryend.vertices.push( vertexend );
+					
+					linegeometry.vertices.push( new THREE.Vector3(vertexstart.x, vertexstart.y, vertexstart.z) );
+					linegeometry.vertices.push( new THREE.Vector3(vertexend.x, vertexend.y, vertexend.z) );
 				}
 				
-				geometryend = new THREE.Geometry();
-				for ( j = 0; j < 2000; j ++ ) {
+				
 
-					var vertexe = new THREE.Vector3();
-					vertexe.x = windowHalfX - 1000;//Math.random() * 2000 - 1000;
-					vertexe.y = windowHalfY - 1000;//Math.random() * 2000 - 1000;
-					vertexe.z = 1000//Math.random() * 2000 - 1000;
-		
-					geometryend.vertices.push( vertexe );
-				}
 
+	
+			
 				parameters = [
 					[ [1, 1, 0.5], 5 ],
 					[ [0.95, 1, 0.5], 5 ],
@@ -92,6 +113,7 @@
 					[ [0.80, 1, 0.5], 5 ]
 				];
 
+				
 				for ( i = 0; i < parameters.length; i ++ ) {
 
 					color = parameters[i][0];
@@ -100,6 +122,27 @@
 					materials[i] = new THREE.PointsMaterial( { size: size } );
 
 					particles = new THREE.Points( geometry, materials[i] );
+					
+					//linesegmentmaterial = new THREE.LineBasicMaterial({color: 0x0000ff});
+					//var linesegmentgeometry = new THREE.Geometry();
+					//linesegmentgeometry.vertices.push(
+						//new THREE.Vector3( geometry.vertices[ i ].x, geometry.vertices[ i ].y, geometry.vertices[ i ].z ),
+						//new THREE.Vector3( geometryend.vertices[ i ].x, geometryend.vertices[ i ].y, geometryend.vertices[ i ].z  )
+					///);
+
+					//line = new THREE.LineSegments( linesegmentgeometry, linesegmentmaterial );
+					//scene.add( line );
+					
+					line = new THREE.LineSegments( linegeometry, materials[i] );
+					scene.add( line );
+					
+					//linesegmentgeometry = new THREE.Geometry();
+					//linesegmentgeometry.vertices.push(
+						//geometry.vertices[ i ],
+						//geometryend.vertices[ i ]
+					//);
+					//line = new THREE.LineSegments( linesegmentgeometry, linesegmentmaterial );
+	                //scene.add( line );
 
 					///particles.rotation.x = Math.random() * 6;
 					///particles.rotation.y = Math.random() * 6;
@@ -196,20 +239,20 @@
 
 					var object = scene.children[ i ];
 
-					if ( object instanceof THREE.Points ) {
-
-					for ( i = 0; i < object.geometry.vertices.length; i ++ )
+					if ( object instanceof THREE.Points )
 					{
-					      var object1 = object.geometry.vertices[ i ];
-						  if ( object1 instanceof THREE.Vector3 )
-						  {
-						   object1.x = windowHalfX - 1000;
-						   object1.y = windowHalfY - 1000;
-						   object1.z = 1000;
-						  }
-						  
-					}
-					      
+						for ( i = 0; i < object.geometry.vertices.length; i ++ )
+						{
+							  var objectfrom = object.geometry.vertices[ i ];
+							  var objectto = geometryend.vertices[ i ];
+							  
+							  if ( objectfrom instanceof THREE.Vector3 )
+							  {
+							   objectfrom.x = objectto.x;
+							   objectfrom.y = objectto.y;
+							   objectfrom.z = objectto.z;
+							  }
+						}
 						//object.rotation.y = time * ( i < 4 ? i + 1 : - ( i + 1 ) );
 						  
 					}
