@@ -213,24 +213,53 @@
 
 			}
 
-			//
+			//Function to update the lines
+      function UpdateLines()
+			{
+					for ( i = 0; i < linegeometry.vertices.length; i = i + 2 )
+					{
+						var fromPoint = linegeometry.vertices[ i ];
+						var toPoint   = linegeometry.vertices[ i + 1 ];
+
+						if ( toPoint instanceof THREE.Vector3 )
+						{
+						  //Calculate the distance travelled in the elaspsed time and hence the new toPoint
+						  distancetravelled = speed * frameTime * 10;
+						  var directionVertice = directiongeometry.vertices[ i/2 ];
+						  var newPoint;
+						  if ( directionVertice instanceof THREE.Vector3 )
+						  {
+						    newPoint = new THREE.Vector3();
+							  toPoint.x = toPoint.x + ((directionVertice.x) * distancetravelled);
+							  toPoint.y = toPoint.y + ((directionVertice.y) * distancetravelled);
+							  toPoint.z = toPoint.z + ((directionVertice.z) * distancetravelled);
+						  }
+
+							//Update the fromPoint to trail linelength behind toPoint
+						   fromPoint.x = toPoint.x + ((directionVertice.x) * -linelength);
+						   fromPoint.y = toPoint.y + ((directionVertice.y) * -linelength);
+						   fromPoint.z = toPoint.z + ((directionVertice.z) * -linelength);
+
+					 	}
+					}
+
+					//Important to do this for line update
+					linegeometry.verticesNeedUpdate = true;
+			}
 
 			function animate() {
-
 				requestAnimationFrame( animate );
-
+				frameTime = clock.getDelta();
 				render();
+				UpdateLines();
 				stats.update();
-
 			}
 
 			function render() {
 
 				var time = Date.now() * 0.00005;
-
 				camera.position.x += ( mouseX - camera.position.x ) * 0.05;
 				camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
-
 				camera.lookAt( scene.position );
 
         //Color for the dots
