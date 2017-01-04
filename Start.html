@@ -108,28 +108,27 @@
 					geometrycurrent.vertices.push( vertexcurrent );
 
 
-					
-					geometry.vertices.push( vertexstart );
-					geometryend.vertices.push( vertexend );
-					
+					//Create a line from start to current
 					linegeometry.vertices.push( new THREE.Vector3(vertexstart.x, vertexstart.y, vertexstart.z) );
-					linegeometry.vertices.push( new THREE.Vector3(vertexend.x, vertexend.y, vertexend.z) );
+					linegeometry.vertices.push( new THREE.Vector3(vertexcurrent.x, vertexcurrent.y, vertexcurrent.z) );
 				}
-				
-				
 
-
-	
-			
 				parameters = [
 					[ [1, 1, 0.5], 5 ],
-					[ [0.95, 1, 0.5], 5 ],
-					[ [0.90, 1, 0.5], 5 ],
-					[ [0.85, 1, 0.5], 5 ],
-					[ [0.80, 1, 0.5], 5 ]
+					[ [1, 1, 0.5], 5 ],
+					[ [1, 1, 0.5], 5 ],
+					[ [1, 1, 0.5], 5 ],
+					[ [1, 1, 0.5], 5 ]
+				];
+				lineparameters = [
+					[ 0.25, 0xff9900, 1, 4 ],
+					[ 0.5, 0xff9900, 1, 1 ],
+					[ 0.75, 0xffaa00, 0.75, 1 ],
+					[ 1, 0xffaa00, 0.5, 1 ],
+					[ 1.25, 0x000833, 0.8, 1 ],
 				];
 
-				
+        var p;
 				for ( i = 0; i < parameters.length; i ++ ) {
 
 					color = parameters[i][0];
@@ -137,34 +136,20 @@
 
 					materials[i] = new THREE.PointsMaterial( { size: size } );
 
-					particles = new THREE.Points( geometry, materials[i] );
-					
-					//linesegmentmaterial = new THREE.LineBasicMaterial({color: 0x0000ff});
-					//var linesegmentgeometry = new THREE.Geometry();
-					//linesegmentgeometry.vertices.push(
-						//new THREE.Vector3( geometry.vertices[ i ].x, geometry.vertices[ i ].y, geometry.vertices[ i ].z ),
-						//new THREE.Vector3( geometryend.vertices[ i ].x, geometryend.vertices[ i ].y, geometryend.vertices[ i ].z  )
-					///);
-
-					//line = new THREE.LineSegments( linesegmentgeometry, linesegmentmaterial );
-					//scene.add( line );
-					
-					line = new THREE.LineSegments( linegeometry, materials[i] );
+					//Draws line from origin to all random points
+					lineparam = lineparameters[ i ];
+					linematerials[i] = new THREE.LineBasicMaterial( { color: lineparam[ 1 ], opacity: lineparam[ 2 ], linewidth: lineparam[ 3 ] } );
+					line = new THREE.LineSegments( linegeometry, linematerials[i] );
+					line.scale.x = line.scale.y = line.scale.z = lineparam[ 0 ];
 					scene.add( line );
-					
-					//linesegmentgeometry = new THREE.Geometry();
-					//linesegmentgeometry.vertices.push(
-						//geometry.vertices[ i ],
-						//geometryend.vertices[ i ]
-					//);
-					//line = new THREE.LineSegments( linesegmentgeometry, linesegmentmaterial );
-	                //scene.add( line );
 
-					///particles.rotation.x = Math.random() * 6;
-					///particles.rotation.y = Math.random() * 6;
-					///particles.rotation.z = Math.random() * 6;
-
+					particles = new THREE.Points( geometryend, materials[i] );
 					scene.add( particles );
+					 particles.rotation.x = Math.random() * 6;
+					 particles.rotation.y = Math.random() * 6;
+					 particles.rotation.z = Math.random() * 6;
+
+
 
 				}
 
@@ -180,10 +165,7 @@
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
