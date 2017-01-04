@@ -70,33 +70,42 @@
 				scene = new THREE.Scene();
 				scene.fog = new THREE.FogExp2( 0x000000, 0.0007 );
 
-				geometry = new THREE.Geometry();
+				geometrystart = new THREE.Geometry();
 				geometryend = new THREE.Geometry();
-				var linegeometry = new THREE.Geometry();
-	
-				for ( i = 0; i < 2000; i ++ ) {
+				geometrycurrent = new THREE.Geometry();
+				linegeometry = new THREE.Geometry();
+				directiongeometry = new THREE.Geometry();
+				distanceArray = new Array(nooffireworks);
 
+				for ( i = 0; i < nooffireworks; i ++ ) {
+
+					//Starting point of the fireworks
 					vertexstart = new THREE.Vector3();
-					vertexstart.x = windowHalfX - 1000;//Math.random() * 2000 - 1000;
-					vertexstart.y = windowHalfY - 1000;//Math.random() * 2000 - 1000;
-					vertexstart.z = 1000//Math.random() * 2000 - 1000;
-					
+					vertexstart.x = windowHalfX - 1000;
+					vertexstart.y = windowHalfY - 1000;
+					vertexstart.z = 1000;
+					geometrystart.vertices.push( vertexstart );
+
+	        //End points of the fireworks
 					vertexend = new THREE.Vector3();
 					vertexend.x = Math.random() * 2000 - 1000;
 					vertexend.y = Math.random() * 2000 - 1000;
 					vertexend.z = Math.random() * 2000 - 1000;
-				
-					//Compute distance between these two
-					//var d = vertexstart.distanceTo( vertexend );
-					//var fireworksDirection = new THREE.Vector3();
-					//fireworksDirection.subVectors( vertexstart, vertexend ).normalize();
-					
-					//var fireworksRay = new THREE.Ray();
-					//fireworksRay.set(vertexstart, fireworksDirection);
-					//var raymaterial = new THREE.PointsMaterial( { 5: 5 } );
-					//var rayparticles = new THREE.Points( fireworksRay, raymaterial );
-					//scene.add( fireworksRay );
-					
+					geometryend.vertices.push( vertexend );
+
+					//Compute distance between these two and the direction
+					var d = vertexstart.distanceTo( vertexend );
+					distanceArray[i] = d;
+					fireworksDirection = new THREE.Vector3();
+					fireworksDirection.subVectors( vertexend, vertexstart).normalize();
+					directiongeometry.vertices.push( fireworksDirection );
+
+					//Currents point of the fireworks. lets keep the length of the line at 100 units
+					vertexcurrent = new THREE.Vector3();
+					vertexcurrent.x = (windowHalfX - 1000) + ((fireworksDirection.x) * linelength);
+					vertexcurrent.y = (windowHalfY - 1000) + ((fireworksDirection.y) * linelength);
+					vertexcurrent.z = 1000 								 + ((fireworksDirection.z) * linelength);
+					geometrycurrent.vertices.push( vertexcurrent );
 
 
 					
