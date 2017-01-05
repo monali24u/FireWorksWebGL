@@ -47,13 +47,13 @@
 			var geometrystart, geometryend, geometrycurrent, linegeometry;
 			var vertexstart, vertexend, fireworksDirection, distanceArray, directiongeometry;
 			var mouseX = 0, mouseY = 0;
-			var speed = 3;
-			var nooffireworks = 60;
+			var speed = 10;
+			var nooffireworks = 300;
 
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
       var clock = new THREE.Clock();
-			var linelength = 20;
+			var linelength = 5;
 			var frameTime = 0;
 			var distancetravelled = 0;
 			init();
@@ -105,7 +105,7 @@
 					vertexcurrent.x = (windowHalfX - 1000) + ((fireworksDirection.x) * linelength);
 					vertexcurrent.y = (windowHalfY - 1000) + ((fireworksDirection.y) * linelength);
 					vertexcurrent.z = 1000 								 + ((fireworksDirection.z) * linelength);
-					geometrycurrent.vertices.push( vertexcurrent );
+					//geometrycurrent.vertices.push( vertexcurrent );
 
 
 					//Create a line from start to current
@@ -115,17 +115,17 @@
 
 				parameters = [
 					[ [1, 1, 0.5], 5 ],
-					[ [1, 1, 0.5], 5 ],
-					[ [1, 1, 0.5], 5 ],
-					[ [1, 1, 0.5], 5 ],
-					[ [1, 1, 0.5], 5 ]
+					//[ [1, 1, 0.5], 5 ],
+					//[ [1, 1, 0.5], 5 ],
+					//[ [1, 1, 0.5], 5 ],
+					//[ [1, 1, 0.5], 5 ]
 				];
 				lineparameters = [
-					[ 0.25, 0xff9900, 1, 4 ],
-					[ 0.5, 0xff9900, 1, 1 ],
-					[ 0.75, 0xffaa00, 0.75, 1 ],
+					//[ 0.25, 0xff9900, 1, 4 ],
+					//[ 0.5, 0xff9900, 1, 1 ],
+					//[ 0.75, 0xffaa00, 0.75, 1 ],
 					[ 1, 0xffaa00, 0.5, 1 ],
-					[ 1.25, 0x000833, 0.8, 1 ],
+					//[ 1.25, 0x000833, 0.8, 1 ],
 				];
 
         var p;
@@ -145,9 +145,9 @@
 
 					particles = new THREE.Points( geometryend, materials[i] );
 					scene.add( particles );
-					 particles.rotation.x = Math.random() * 6;
-					 particles.rotation.y = Math.random() * 6;
-					 particles.rotation.z = Math.random() * 6;
+					//particles.rotation.x = Math.random() * 6;
+				//particles.rotation.y = Math.random() * 6;
+					// particles.rotation.z = Math.random() * 6;
 
 
 
@@ -220,9 +220,28 @@
 					{
 						var fromPoint = linegeometry.vertices[ i ];
 						var toPoint   = linegeometry.vertices[ i + 1 ];
+						var endPoint  = geometryend.vertices[i/2];
 
 						if ( toPoint instanceof THREE.Vector3 )
 						{
+							//If we are at the destination then we just need to disperse the fire particles
+							var distance = geometrystart.vertices[i/2].distanceTo( toPoint );
+							if(distance > distanceArray[i/2])
+							{
+								alert("cane");
+								// geometryend.vertices.splice((i/2), 1);
+								// linegeometry.vertices.splice(i, 2);
+								// directiongeometry.vertices.splice((i/2), 1);
+								// i = i - 2;
+								//
+								// //Important to do this for line update
+								// geometryend.verticesNeedUpdate = true;
+								// linegeometry.verticesNeedUpdate = true;
+								// directiongeometry.verticesNeedUpdate = true;
+								continue;
+							}
+						else
+						 {
 						  //Calculate the distance travelled in the elaspsed time and hence the new toPoint
 						  distancetravelled = speed * frameTime * 10;
 						  var directionVertice = directiongeometry.vertices[ i/2 ];
@@ -240,11 +259,12 @@
 						   fromPoint.y = toPoint.y + ((directionVertice.y) * -linelength);
 						   fromPoint.z = toPoint.z + ((directionVertice.z) * -linelength);
 
+
+							 					//Important to do this for line update
+							 					linegeometry.verticesNeedUpdate = true;
+						 }
 					 	}
 					}
-
-					//Important to do this for line update
-					linegeometry.verticesNeedUpdate = true;
 			}
 
 			function animate() {
@@ -276,16 +296,16 @@
 					linematerials[i].color.setHSL( h, color[1], color[2] );
 				}
 
-                 //Wanna rotate?
-				 for ( i = 0; i < scene.children.length; i++ ) {
-				 	var object = scene.children[ i ];
- 			    object.rotation.y = time * ( i < 4 ? ( i + 1 ) : - ( i + 1 ) );
-			   }
+        //Wanna rotate?
+				//  for ( i = 0; i < scene.children.length; i++ ) {
+				//  	var object = scene.children[ i ];
+ 			 //    object.rotation.y = time * ( i < 4 ? ( i + 1 ) : - ( i + 1 ) );
+			  //  }
+
+				//scene.rotation.y = time * ( i < 4 ? ( i + 1 ) : - ( i + 1 ) );
 
 				renderer.render( scene, camera );
 			}
-
-
 		</script>
 	</body>
 </html>
