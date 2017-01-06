@@ -44,11 +44,11 @@
       //Global variables
 
 			var container, stats;
-			var camera, scene, renderer, particles,  materials = [], parameters, i, j, h, color, size, line;
-			var lineparam, lineparameters, linematerials = [];
+			var camera, scene, renderer, particles,  materials = [], parameters, i, j, h, color, size, lines = [];
+			var lineparam, lineparameters, linematerials = [], linesgeometry = [];
 			var vertexstart, vertexend, fireworksDirection;
 			var mouseX = 0, mouseY = 0;
-			var speed = 100;
+			var speed = 3;
 			var nooffireworks = 60;
 			var allFireworksReachedDestination = 0;
 
@@ -60,16 +60,27 @@
 			var distancetravelled = 0;
 
 			var geometryend = new THREE.Geometry();
-			var linegeometry = new THREE.Geometry();
 			var directiongeometry = new THREE.Geometry();
 			var distanceArray = new Array(nooffireworks);
+
+			//FireWorks variables
+			var ticker = 0;
+			var tickermax = 80;
+      var fwstart, fwend, fwcurrent, fwDirection;
+			var fwGeometry, fwparameters, fwparam, fwmaterials = [], fwline;
 
 			init();
 			animate();
 
-			function removeEntity(name)
+			// get a random number within a range
+			function random( min, max ) {
+				return Math.random() * ( max - min ) + min;
+			}
+
+			//Remove entity from scene
+			function removeEntity(selectedObject)
 			 {
-    			var selectedObject = scene.getObjectByName(name);
+    			//var selectedObject = scene.getObjectByName(name);
     			scene.remove( selectedObject );
     		  animate();
 			}
@@ -84,33 +95,45 @@
 					vertexend.z = Math.random() * 2000 - 1000;
 					geometryend.vertices.push( vertexend );
 
-						if(allFireworksReachedDestination == 0)
-						{
-							//Starting point of the fireworks
-							vertexstart = new THREE.Vector3();
-							vertexstart.x = windowHalfX - 1000;
-							vertexstart.y = windowHalfY - 1000;
-							vertexstart.z = 1000;
+					//Starting point of the fireworks
+  				vertexstart = new THREE.Vector3();
+					vertexstart.x = windowHalfX - 1000;
+					vertexstart.y = windowHalfY - 1000;
+					vertexstart.z = 1000;
 
-							//Compute distance between these two and the direction
-							var d = vertexstart.distanceTo( vertexend );
-							distanceArray[i] = d;
-							fireworksDirection = new THREE.Vector3();
-							fireworksDirection.subVectors( vertexend, vertexstart).normalize();
-							directiongeometry.vertices.push( fireworksDirection );
+					//Compute distance between these two and the direction
+					var d = vertexstart.distanceTo( vertexend );
+					distanceArray[i] = d;
+					fireworksDirection = new THREE.Vector3();
+					fireworksDirection.subVectors( vertexend, vertexstart).normalize();
+					directiongeometry.vertices.push( fireworksDirection );
 
-							//Currents point of the fireworks. lets keep the length of the line at 100 units
-							vertexcurrent = new THREE.Vector3();
-							vertexcurrent.x = (windowHalfX - 1000) + ((fireworksDirection.x) * linelength);
-							vertexcurrent.y = (windowHalfY - 1000) + ((fireworksDirection.y) * linelength);
-							vertexcurrent.z = 1000 								 + ((fireworksDirection.z) * linelength);
+					//Currents point of the fireworks. lets keep the length of the line at 100 units
+					vertexcurrent = new THREE.Vector3();
+					vertexcurrent.x = (windowHalfX - 1000) + ((fireworksDirection.x) * linelength);
+					vertexcurrent.y = (windowHalfY - 1000) + ((fireworksDirection.y) * linelength);
+					vertexcurrent.z = 1000 								 + ((fireworksDirection.z) * linelength);
 
-							//Create a line from start to current
-							linegeometry.vertices.push( new THREE.Vector3(vertexstart.x, vertexstart.y, vertexstart.z) );
-							linegeometry.vertices.push( new THREE.Vector3(vertexcurrent.x, vertexcurrent.y, vertexcurrent.z) );
-					  }
+					//Create a line from start to current
+					lineparameters = [
+						//[ 0.25, 0xff9900, 1, 4 ],
+						//[ 0.5, 0xff9900, 1, 1 ],
+						//[ 0.75, 0xffaa00, 0.75, 1 ],
+						[ 1, 0xffaa00, 0.5, 1 ],
+						//[ 1.25, 0x000833, 0.8, 1 ],
+					];
+
+					linesgeometry[i] = new THREE.Geometry();
+					linesgeometry[i].vertices.push( new THREE.Vector3(vertexstart.x, vertexstart.y, vertexstart.z) );
+					linesgeometry[i].vertices.push( new THREE.Vector3(vertexcurrent.x, vertexcurrent.y, vertexcurrent.z) );
+
+					//Draws line from origin to all random points
+					lineparam = lineparameters[ 0 ];
+					linematerials[0] = new THREE.LineBasicMaterial( { color: lineparam[ 1 ], opacity: lineparam[ 2 ], linewidth: lineparam[ 3 ] } );
+					lines[i] = new THREE.LineSegments( linesgeometry[i], linematerials[0] );
+					lines[i].name = "_fireworks"+ i;
+          scene.add( lines[i] );
 				}
-
 			}
 
 			function initScene()
@@ -122,14 +145,6 @@
 					//[ [1, 1, 0.5], 5 ],
 					//[ [1, 1, 0.5], 5 ]
 				];
-				lineparameters = [
-					//[ 0.25, 0xff9900, 1, 4 ],
-					//[ 0.5, 0xff9900, 1, 1 ],
-					//[ 0.75, 0xffaa00, 0.75, 1 ],
-					[ 1, 0xffaa00, 0.5, 1 ],
-					//[ 1.25, 0x000833, 0.8, 1 ],
-				];
-
         var p;
 				for ( i = 0; i < parameters.length; i ++ ) {
 
@@ -137,16 +152,7 @@
 					size  = parameters[i][1];
 
 					materials[i] = new THREE.PointsMaterial( { size: size } );
-
-					//Draws line from origin to all random points
-					lineparam = lineparameters[ i ];
-					linematerials[i] = new THREE.LineBasicMaterial( { color: lineparam[ 1 ], opacity: lineparam[ 2 ], linewidth: lineparam[ 3 ] } );
-					line = new THREE.LineSegments( linegeometry, linematerials[i] );
-					line.scale.x = line.scale.y = line.scale.z = lineparam[ 0 ];
-					line.name = "_fireworks";
-					scene.add( line );
-
-					particles = new THREE.Points( geometryend, materials[i] );
+  				particles = new THREE.Points( geometryend, materials[i] );
 					scene.add( particles );
 				}
 			}
@@ -166,7 +172,18 @@
         //Initialize the data
 			  initData();
 
+				//Initialize scene
 				initScene();
+
+
+				//Initialize fireworks every time the tickercount is reached
+        // if(ticker > tickercount)
+				// {
+				// 	ticker = 0;
+				//   initFireWorks();
+				// 	initFireWorksScene();
+				// }
+				// ticker++;
 
 				renderer = new THREE.WebGLRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
@@ -228,67 +245,45 @@
 			}
 
 			//Function to update the lines
-      function UpdateLines()
-			{
-	      if(allFireworksReachedDestination == 0)
+      function UpdateLines() {
+			for ( i = 0; i < linesgeometry.length; i++ )
 				{
-						allFireworksReachedDestination = 1;
-						for ( i = 0; i < linegeometry.vertices.length; i = i + 2 )
+					var lineObject = linesgeometry[ i ];
+					var fromPoint = lineObject.vertices[ 0 ];
+					var toPoint   = lineObject.vertices[ 1 ];
+					var endPoint  = geometryend.vertices[i];
+
+					if ( toPoint instanceof THREE.Vector3 )
+					{
+						//If we are at the destination then we just need to disperse the fire particles
+						var distance = vertexstart.distanceTo( toPoint );
+						if(distance > distanceArray[i])
 						{
-							var fromPoint = linegeometry.vertices[ i ];
-							var toPoint   = linegeometry.vertices[ i + 1 ];
-							var endPoint  = geometryend.vertices[i/2];
-
-							if ( toPoint instanceof THREE.Vector3 )
-							{
-								//If we are at the destination then we just need to disperse the fire particles
-								var distance = vertexstart.distanceTo( toPoint );
-								if(distance > distanceArray[i/2])
-								{
-									//  geometryend.vertices.splice((i/2), 1);
-									//  linegeometry.vertices.splice(i, 2);
-									//  directiongeometry.vertices.splice((i/2), 1);
-									//  distanceArray.splice((i/2), 1);
-									//  i = i - 2;
-									// //
-									// // //Important to do this for line update
-									//  geometryend.verticesNeedUpdate = true;
-									//  linegeometry.verticesNeedUpdate = true;
-									//  directiongeometry.verticesNeedUpdate = true;
-									//  distanceArray.verticesNeedUpdate = true;
-									continue;
-								}
-							else
-							 {
-							  //Calculate the distance travelled in the elaspsed time and hence the new toPoint
-								allFireworksReachedDestination = 0;
-								distancetravelled = speed * frameTime * 10;
-							  var directionVertice = directiongeometry.vertices[ i/2 ];
-							  var newPoint;
-							  if ( directionVertice instanceof THREE.Vector3 )
-							  {
-							    newPoint = new THREE.Vector3();
-								  toPoint.x = toPoint.x + ((directionVertice.x) * distancetravelled);
-								  toPoint.y = toPoint.y + ((directionVertice.y) * distancetravelled);
-								  toPoint.z = toPoint.z + ((directionVertice.z) * distancetravelled);
-							  }
-
-								//Update the fromPoint to trail linelength behind toPoint
-							   fromPoint.x = toPoint.x + ((directionVertice.x) * -linelength);
-							   fromPoint.y = toPoint.y + ((directionVertice.y) * -linelength);
-							   fromPoint.z = toPoint.z + ((directionVertice.z) * -linelength);
-
-			 					//Important to do this for line update
-			 					linegeometry.verticesNeedUpdate = true;
-							 }
-						 	}
+              lines[i].visible = false;
+						}
+					else
+					 {
+						//Calculate the distance travelled in the elaspsed time and hence the new toPoint
+						distancetravelled = speed * frameTime * 10;
+						var directionVertice = directiongeometry.vertices[ i ];
+						var newPoint;
+						if ( directionVertice instanceof THREE.Vector3 )
+						{
+							newPoint = new THREE.Vector3();
+							toPoint.x = toPoint.x + ((directionVertice.x) * distancetravelled);
+							toPoint.y = toPoint.y + ((directionVertice.y) * distancetravelled);
+							toPoint.z = toPoint.z + ((directionVertice.z) * distancetravelled);
 						}
 
-						if(allFireworksReachedDestination == 1)
-						{
-							//We can now remove the fireworks from the scene
-							removeEntity(line.name);
-						}
+						//Update the fromPoint to trail linelength behind toPoint
+						 fromPoint.x = toPoint.x + ((directionVertice.x) * -linelength);
+						 fromPoint.y = toPoint.y + ((directionVertice.y) * -linelength);
+						 fromPoint.z = toPoint.z + ((directionVertice.z) * -linelength);
+
+						//Important to do this for line update
+						lineObject.verticesNeedUpdate = true;
+					 }
+					}
 				}
 			}
 
@@ -296,6 +291,7 @@
 				requestAnimationFrame( animate );
 				frameTime = clock.getDelta();
 				render();
+
 				UpdateLines();
 				stats.update();
 			}
