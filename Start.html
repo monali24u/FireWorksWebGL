@@ -46,7 +46,7 @@
 			var lineparam, lineparameters, linematerials = [], linesgeometry = [];
 			var vertexstart, vertexend, fireworksDirection;
 			var mouseX = 0, mouseY = 0;
-			var speed = 25;
+			var speed = 15;
 			var nooffireworks = 100;
 			var timer;
 
@@ -93,8 +93,8 @@
 			{
 					//End points of the fireworks
 					vertexend = new THREE.Vector3();
-					vertexend.x = Math.random() * 500 - 250;
-					vertexend.y = Math.random() * 500 - 250;
+					vertexend.x = Math.random() * 800 - 400;
+					vertexend.y = Math.random() * 800 - 400;
 					vertexend.z = Math.random() * 500 - 250;
 					geometryend.vertices.push( vertexend );
 
@@ -165,7 +165,7 @@
 					dustGeometry.colors = colors;
 
 				  var texdustloader = new THREE.TextureLoader();
-				  var texdust=texdustloader.load("./images/particle.png");
+				  var texdust=texdustloader.load("./images/dust.png");
 
 					// create the particle variables
 					var dustMaterial = new THREE.PointsMaterial({
@@ -206,6 +206,7 @@
 
 			function initStars()
 			{
+				var starcolors = [];
 				for ( i = 0; i < noofstars; i ++ ) {
 					//End points of the fireworks
 					starposition = new THREE.Vector3();
@@ -213,17 +214,23 @@
 					starposition.y = Math.random() * 2000 - 1000;
 					starposition.z = Math.random() * 2000 - 1000;
 					stargeometry.vertices.push( starposition );
+
+					//starcolors[i] = new THREE.Color();
+					//starcolors[i].setHSL( 0 , 0, 100 );
 				}
 
+				//stargeometry.colors = starcolors;
+
 				var texloader = new THREE.TextureLoader();
-				var tex=texloader.load("./images/stars.png");
+				var tex=texloader.load("./images/smallstars.png");
 
 				var particleMaterial = new THREE.PointsMaterial(
             {color: 0xffffff,
-             size: 25,
+             size: 5,
 						 map: tex,
              blending: THREE.AdditiveBlending,
              transparent: true,
+						 //vertexColors: THREE.VertexColors
             });
 
 					particles = new THREE.Points( stargeometry,particleMaterial );
@@ -328,6 +335,7 @@
 						if(distance > distanceArray[i] && dustSystems[i].visible == false)
 						{
               lines[i].visible = false;
+							scene.remove( lines[i] );
               dustSystems[i].visible = true;
 							CreateFireWorksparticles(toPoint, i);
 						}
@@ -370,6 +378,12 @@
 				camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
 				camera.lookAt( scene.position );
 
+				//make stars twinkle
+				// for(var starcnt = 0; starcnt < noofstars; starcnt++)
+				// {
+				// 	stargeometry.colors[ starcnt ].setHSL( 0, 0, random(0, 100) );
+				// }
+
 				 for(var dustsystemindex = 0; dustsystemindex < nooffireworks; dustsystemindex++)
 				 {
                var tempdustSystem = dustSystems[dustsystemindex];
@@ -396,6 +410,7 @@
                  {
                    tempdustSystem.deaccleration = 0;
                    tempdustSystem.visible = false;
+									 scene.remove( tempdustSystem );
                  }
                  else
                    tempdustSystem.deaccleration = tempdustSystem.deaccleration - .006;
@@ -404,6 +419,10 @@
                  tempdustGeometry.verticesNeedUpdate = true;
               }
 				 	}
+
+				//stargeometry.colorsNeedUpdate = true;
+
+
 				renderer.render( scene, camera );
 			}
 		</script>
