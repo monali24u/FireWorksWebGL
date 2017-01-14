@@ -32,6 +32,11 @@
 	</head>
 	<body>
 
+		<div id="info">
+			<p>Fireworks 3D by Monali Patil using three.js</p>
+			<p>Also checkout 2D Fireworks <a href="./2DFireworks/index.html" target="_blank">here</a></p>
+		</div>
+
 		<script src="build/three.js"></script>
 		<script src="js/Detector.js"></script>
 		<script src="js/libs/stats.min.js"></script>
@@ -41,7 +46,7 @@
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
       //Global variables
-			var container, stats;
+			var container;
 			var camera, scene, renderer, particles, i = 0, j, l, size, lines = [];
 			var lineparam, lineparameters, linematerials = [], linesgeometry = [];
 			var vertexstart, vertexend, fireworksDirection;
@@ -215,22 +220,22 @@
 					starposition.z = Math.random() * 2000 - 1000;
 					stargeometry.vertices.push( starposition );
 
-					//starcolors[i] = new THREE.Color();
-					//starcolors[i].setHSL( 0 , 0, 100 );
+					starcolors[i] = new THREE.Color();
+					starcolors[i].setHSL( 0 , 0, 100 );
 				}
 
-				//stargeometry.colors = starcolors;
+				stargeometry.colors = starcolors;
 
 				var texloader = new THREE.TextureLoader();
 				var tex=texloader.load("./images/smallstars.png");
 
 				var particleMaterial = new THREE.PointsMaterial(
-            {color: 0xffffff,
+            {//color: 0xffffff,
              size: 5,
 						 map: tex,
              blending: THREE.AdditiveBlending,
              transparent: true,
-						 //vertexColors: THREE.VertexColors
+						 vertexColors: THREE.VertexColors
             });
 
 					particles = new THREE.Points( stargeometry,particleMaterial );
@@ -264,9 +269,6 @@
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild( renderer.domElement );
-
-				stats = new Stats();
-				container.appendChild( stats.dom );
 
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
@@ -368,7 +370,6 @@
 				frameTime = clock.getDelta();
 				render();
 				UpdateLines();
-				stats.update();
 			}
 
 			function render() {
@@ -379,10 +380,10 @@
 				camera.lookAt( scene.position );
 
 				//make stars twinkle
-				// for(var starcnt = 0; starcnt < noofstars; starcnt++)
-				// {
-				// 	stargeometry.colors[ starcnt ].setHSL( 0, 0, random(0, 100) );
-				// }
+				for(var starcnt = 0; starcnt < noofstars; starcnt++)
+				{
+					stargeometry.colors[ starcnt ].setHSL( 0, 0, random(0, 100) );
+				}
 
 				 for(var dustsystemindex = 0; dustsystemindex < nooffireworks; dustsystemindex++)
 				 {
@@ -420,7 +421,7 @@
               }
 				 	}
 
-				//stargeometry.colorsNeedUpdate = true;
+				stargeometry.colorsNeedUpdate = true;
 
 
 				renderer.render( scene, camera );
