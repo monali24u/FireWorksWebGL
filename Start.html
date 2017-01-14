@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<title>Fireworks</title>
-		<meta charset="utf-8">
+		<met	a charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -42,13 +42,12 @@
 
       //Global variables
 			var container, stats;
-			var camera, scene, renderer, particles,  materials = [], parameters, i = 0, j, l, color, size, lines = [];
+			var camera, scene, renderer, particles, i = 0, j, l, size, lines = [];
 			var lineparam, lineparameters, linematerials = [], linesgeometry = [];
 			var vertexstart, vertexend, fireworksDirection;
 			var mouseX = 0, mouseY = 0;
 			var speed = 25;
-			var nooffireworks = 6;
-			var allFireworksReachedDestination = 0;
+			var nooffireworks = 100;
 			var timer;
 
 			var windowHalfX = window.innerWidth / 2;
@@ -59,9 +58,6 @@
 			var distancetravelled = 0;
 
 			//FireWorks variables
-			var ticker = 0;
-			var tickermax = 80;
-			var fireworktimeout;
 			var fireworkstartindex = 0;
 			var geometryend = new THREE.Geometry();
 			var directiongeometry = new THREE.Geometry();
@@ -73,21 +69,10 @@
 			var stargeometry = new THREE.Geometry();
 
 			//Particle variables
-			var particlescount = 60;
-			var particlelength = 20;
-			var particlestart;
-			var particleend;
-			var particlecurrent;
-			var particlegeometryend;
-			var particledistanceArray = new Array(particlescount);
-			var particledirection;
-			var particledirectiongeometry = new THREE.Geometry();
-			var particleparam, particleparameters, particlematerials = [], particlegeometry = [],  particlelines = [];
-
-			var dustGeometry = new THREE.Geometry();
 			var k, dust;
-			var dustCount = 600;
-			var dustSystem
+			var dustCount = 100;
+			var dustSystems = [];
+      var dustSystem;
 
 			init();
 			animate();
@@ -100,7 +85,6 @@
 			//Remove entity from scene
 			function removeEntity(selectedObject)
 			 {
-    			//var selectedObject = scene.getObjectByName(name);
     			scene.remove( selectedObject );
     		  animate();
 			}
@@ -109,9 +93,9 @@
 			{
 					//End points of the fireworks
 					vertexend = new THREE.Vector3();
-					vertexend.x = Math.random() * 2000 - 1000;
-					vertexend.y = Math.random() * 2000 - 1000;
-					vertexend.z = Math.random() * 2000 - 1000;
+					vertexend.x = Math.random() * 500 - 250;
+					vertexend.y = Math.random() * 500 - 250;
+					vertexend.z = Math.random() * 500 - 250;
 					geometryend.vertices.push( vertexend );
 
 					//Starting point of the fireworks
@@ -157,70 +141,67 @@
 					{
 						clearTimeout(timer);
 					}
-				//}
 			}, 1500);
 
 
-       function onemore()
+       function initDustSystem()
 			 {
+				 // vertex colors
+				 var dustGeometry = new THREE.Geometry()
+				 var colors = [];
 				 for ( k = 0; k < dustCount; k ++ ) {
  					//End points of the fireworks
  					dust = new THREE.Vector3();
  					dust.x = 0;//Math.random() * 2000 - 1000;
  					dust.y = 0;//Math.random() * 2000 - 1000;
  					dust.z = 0;//Math.random() * 2000 - 1000;
-					dust.velocity = new THREE.Vector3( 10, 10, 10);
+					dust.velocity = new THREE.Vector3( random(-2, 2), random(-1, 3), random(-1.5, 1.5));
  					dustGeometry.vertices.push( dust );
+
+					colors[k] = new THREE.Color();
+					colors[k].setHSL( Math.random(), 1.0, 0.5 );
  				}
+
+					dustGeometry.colors = colors;
 
 				  var texdustloader = new THREE.TextureLoader();
 				  var texdust=texdustloader.load("./images/particle.png");
 
 					// create the particle variables
-					var dustMaterial = new THREE.ParticleBasicMaterial({
-								 color: 0xFFFFFF,
-								 size: 20,
+					var dustMaterial = new THREE.PointsMaterial({
+								 //color: 0xFFFFFF,
+								 size: 5,
 								 map: texdust,
 								 blending: THREE.AdditiveBlending,
 								 transparent: true,
+								 vertexColors: THREE.VertexColors
 							 });
 
   			 // create the particle system
-				 dustSystem = new THREE.ParticleSystem(dustGeometry, dustMaterial);
-				 dustSystem.sortParticles = true;
-				 dustSystem.visible = false;
-				 return dustSystem;
+				 var newdustSystem = new THREE.Points(dustGeometry, dustMaterial);
+				 newdustSystem.sortParticles = true;
+				 newdustSystem.visible = false;
+				 newdustSystem.deaccleration = 10;
+				 newdustSystem.gravity = .01;
+				 dustSystems.push(newdustSystem);
+         return newdustSystem;
 			 }
 
 			//Function to create particles when the fireworks reach their destination
-			function CreateFireWorksparticles()
+			function CreateFireWorksparticles(toPoint, i)
 			{
-				// add some rotation to the system
-			   //dustSystem.rotation.y += 0.01;
-				//
-			  var dCount = dustCount;
-			  while (dCount--) {
+
+   			var tempdustGeometry = 	dustSystems[i].geometry;
+				for(var dindex = 0; dindex < dustCount; dindex++)
+				{
 			    // get the particle
-			    var dustp =  dustGeometry.vertices[dCount];
+			    var dustp =  tempdustGeometry.vertices[dindex];
 
-			    // update the velocity with
-			    // a splat of randomniz
-			    dustp.velocity.x -= Math.random() * .1;
-					dustp.velocity.y -= Math.random() * .1;
-					dustp.velocity.z -= Math.random() * .1;
-
-			    // and the position
-			    dustp.x = dustp.x + dustp.velocity.x;
-					dustp.y = dustp.y + dustp.velocity.y;
-					dustp.z = dustp.z + dustp.velocity.z;
-
+					dustp.x = toPoint.x ;//+ xMin + (xMax - xMin) * Math.random();
+					dustp.y = toPoint.y ;//+ yMin + (yMax - yMin) * Math.random();
+					dustp.z = toPoint.z ;//+ zMin + (zMax - zMin) * Math.random();
 			  }
-				dustSystem.verticesNeedUpdate = true;
-				//
-			  // // // flag to the particle system
-			  // // // that we've changed its vertices.
-			   dustSystem.geometry.__dirtyVertices = true;
-				//dustSystem.verticesNeedUpdate = true;
+				dustSystems[i].verticesNeedUpdate = true;
 			}
 
 			function initStars()
@@ -233,13 +214,6 @@
 					starposition.z = Math.random() * 2000 - 1000;
 					stargeometry.vertices.push( starposition );
 				}
-				// parameters = [
-				// 	[ [0, 0, 1], 2 ],
-				// 	//[ [1, 1, 0.5], 5 ],
-				// 	//[ [1, 1, 0.5], 5 ],
-				// 	//[ [1, 1, 0.5], 5 ],
-				// 	//[ [1, 1, 0.5], 5 ]
-				// ];
 
 				var texloader = new THREE.TextureLoader();
 				var tex=texloader.load("./images/stars.png");
@@ -252,16 +226,8 @@
              transparent: true,
             });
 
-        //var p;
-				//for ( i = 0; i < parameters.length; i ++ ) {
-
-					// color = parameters[i][0];
-					// size  = parameters[i][1];
-					//
-					// materials[i] = new THREE.PointsMaterial( { size: size } );
 					particles = new THREE.Points( stargeometry,particleMaterial );
 					return particles;
-				//}
 			}
 
 			function init()
@@ -281,8 +247,11 @@
 				scene.add( particles );
 
 
-				dustSystem = onemore();
-				scene.add(dustSystem);
+        for(var dustsystemindex = 0; dustsystemindex < nooffireworks; dustsystemindex++)
+				{
+					dustSystem = initDustSystem();
+          scene.add(dustSystem);
+  			}
 
 				renderer = new THREE.WebGLRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
@@ -356,23 +325,11 @@
 					{
 						//If we are at the destination then we just need to disperse the fire particles
 						var distance = vertexstart.distanceTo( toPoint );
-						if(distance > distanceArray[i])
+						if(distance > distanceArray[i] && dustSystems[i].visible == false)
 						{
               lines[i].visible = false;
-							var dCount = dustCount;
-							while (dCount--)
-							 {
-								// get the particle
-								var dustp =  dustGeometry.vertices[dCount];
-								// and the position
-								dustp.x = toPoint.x;
-								dustp.y = toPoint.y;
-								dustp.z = toPoint.z;
-							}
-              //SdustGeometry..verticesNeedUpdate = true;
-							dustSystem.verticesNeedUpdate = true;
-							dustSystem.visible = true;
-							//CreateFireWorksparticles();
+              dustSystems[i].visible = true;
+							CreateFireWorksparticles(toPoint, i);
 						}
 					else
 					 {
@@ -403,7 +360,6 @@
 				frameTime = clock.getDelta();
 				render();
 				UpdateLines();
-				//UpdateParticles();
 				stats.update();
 			}
 
@@ -414,81 +370,40 @@
 				camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
 				camera.lookAt( scene.position );
 
-				if(dustSystem.visible)
-				{
-					var dCount = dustCount;
-				  while (dCount--) {
-				    // get the particle
-				    var dustp =  dustGeometry.vertices[dCount];
+				 for(var dustsystemindex = 0; dustsystemindex < nooffireworks; dustsystemindex++)
+				 {
+               var tempdustSystem = dustSystems[dustsystemindex];
+               if(tempdustSystem.visible == true)
+               {
+                 var tempdustGeometry = tempdustSystem.geometry;
+                 for(var dindex = 0; dindex < dustCount; dindex++)
+                 {
+                   // get the particle
+                   var dustp =  tempdustGeometry.vertices[dindex];
 
-				    // update the velocity with
-				    // a splat of randomniz
-				    // dustp.velocity.x -= Math.random() * .1;
-						// dustp.velocity.y -= Math.random() * .1;
-						// dustp.velocity.z -= Math.random() * .1;
-						//
-				    // // and the position
-				    // dustp.x = dustp.x + dustp.velocity.x;
-						// dustp.y = dustp.y + dustp.velocity.y;
-						// dustp.z = dustp.z + dustp.velocity.z;
-						dustp.x = 0;
-						dustp.y = 0;
-						dustp.z = 0;
-				  }
-					 dustSystem.verticesNeedUpdate = true;
-			 }
-				// //
-			  // // // // flag to the particle system
-			  // // // // that we've changed its vertices.
-			  //  dustSystem.geometry.__dirtyVertices = true;
-				//
+                   dustp.x = (dustp.x + (dustp.velocity.x) * tempdustSystem.deaccleration * .009);
+                   dustp.y = (dustp.y + (dustp.velocity.y) * tempdustSystem.deaccleration * .007) - tempdustSystem.gravity;
+                   dustp.z = (dustp.z + (dustp.velocity.z) * tempdustSystem.deaccleration * .008);
+                 }
 
+                 //Increase the gravity constantly
+                 if(tempdustSystem.gravity < 0.1)
+                 {
+                   tempdustSystem.gravity = tempdustSystem.gravity + 0.001;
+                 }
 
+                 if(tempdustSystem.deaccleration < 0)
+                 {
+                   tempdustSystem.deaccleration = 0;
+                   tempdustSystem.visible = false;
+                 }
+                 else
+                   tempdustSystem.deaccleration = tempdustSystem.deaccleration - .006;
 
-					//		var pCount = particleCount1;
-				// while(pCount--) {
-				// 	// get the particle
-				// 	var particle2 = particles1.vertices[pCount];
-				//
-				// 	// check if we need to reset
-				// 	if(particle2.position.y < -200) {
-				// 		particle2.position.y = 200;
-				// 		particle2.velocity.y = 0;
-				// 	}
-				//
-				// 	// update the velocity
-				// 	particle2.velocity.y -= Math.random() * .1;
-				//
-				// 	// and the position
-				// 	particle2.position.addSelf(
-				// 		particle2.velocity);
-				// }
-				//
-				// // flag to the particle system that we've
-				// // changed its vertices. This is the
-				// // dirty little secret.
-				// particleSystem1.geometry.__dirtyVertices = true;
-
-
-        //Color for the dots
-				// for ( i = 0; i < materials.length; i ++ ) {
-				// 	color = parameters[i][0];
-				// 	l = time/100000000;// * Math.random(0, 1);
-				// 	if(l < 0 || l > 1)
-				// 	 l = 1;
-				// 	 alert(l);
-				// 	 materials[i].color.setHSL( color[0], color[1], l );
-				// }
-
-
-        //Wanna rotate?
-				//  for ( i = 0; i < scene.children.length; i++ ) {
-				//  	var object = scene.children[ i ];
- 			 //    object.rotation.y = time * ( i < 4 ? ( i + 1 ) : - ( i + 1 ) );
-			  //  }
-
-				//scene.rotation.y = time * ( i < 4 ? ( i + 1 ) : - ( i + 1 ) );
-
+                 tempdustGeometry.colorsNeedUpdate = true;
+                 tempdustGeometry.verticesNeedUpdate = true;
+              }
+				 	}
 				renderer.render( scene, camera );
 			}
 		</script>
